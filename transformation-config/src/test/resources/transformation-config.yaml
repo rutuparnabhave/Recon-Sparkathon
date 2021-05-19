@@ -1,0 +1,47 @@
+hdfs.url:
+config.root: ${hdfs.url}/conf/
+sql.root: ${config.root}/sql/
+source: sql
+write: mem
+
+#transformation steps (referred later as ${transform.step}})
+transform.steps: book_entry_interim_loader, store_into_temp_table
+# SQL Source SQL common configuration
+# sql source is enabled by "source=sql"
+sql:
+  path: ${sql.root}/${step.name}.hql
+  param:
+
+#Kafka target
+kafka:
+  broker.servers:
+  consumer:
+    group.id:
+    auto.offset.reset:
+    enable.auto.commit:
+    key.deserializer:
+    value.deserializer:
+  producer:
+    acks:
+    batch.size:
+    key.serializer:
+    value.serializer:
+
+# Spark mem store target
+mem:
+  table: ${transform.step}_mem
+  storage_level: MEMORY_ONLY_SER
+
+book_entry_interim_loader:
+  source: sql
+  transform:
+    class: com.cv.sparkathon.GenericSQLTransformationService
+    sql.path: ${sql.root}/book_entry_transformation.hql
+  write: kafka
+  sql:
+    path: ${sql.root}/book_entry_interim_loader_new.hql
+    params:
+      SOURCE_TABLE: book_entry_final
+  kafka:
+    schema: ${config.root}/schemas/output.schema.json
+    topic: book_entry_interim_loader-output-topic
