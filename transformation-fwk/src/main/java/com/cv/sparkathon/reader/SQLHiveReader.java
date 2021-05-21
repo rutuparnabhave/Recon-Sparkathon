@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Run SQL and writing results to given writer
+ * Run SQL and create dataframe
  */
 public class SQLHiveReader {
     private static Logger LOG = LoggerFactory.getLogger(SQLHiveReader.class);

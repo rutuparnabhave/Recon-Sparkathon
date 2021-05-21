@@ -1,9 +1,7 @@
 package com.cv.sparkathon.transform;
 
-import com.cv.sparkathon.config.model.SourceConfig;
-import com.cv.sparkathon.config.model.StepConfig;
-import com.cv.sparkathon.config.model.StepInfo;
-import com.cv.sparkathon.config.model.TransformationConfig;
+import com.cv.sparkathon.config.model.*;
+import com.cv.sparkathon.config.parser.TransformationConfigParser;
 import com.cv.sparkathon.reader.SQLHiveReader;
 import com.cv.sparkathon.writer.SparkMemWriter;
 import com.google.common.collect.ImmutableMap;
@@ -31,6 +29,26 @@ public class TransformationSteps {
                     .put("sql", SQLHiveReader::execute)
                     .put("hive", SQLHiveReader::execute)
                     .build();
+
+    /**
+     * Executing a set of transformations (${transform.steps}) specified by configuration file
+     *
+     * @param transformationConfigFile File path containing the configuration of the whole pipeline
+     * @param spark                    spark session
+     */
+    public static void process(
+            String transformationConfigFile,
+            SparkSession spark) {
+        TransformationConfig transformationConfig = new TransformationConfigParser().parse(transformationConfigFile);
+        ValidationOutput validationOutput = transformationConfig.validate();
+        if (validationOutput.getErrors().size() > 0) {
+            throw new RuntimeException("Invalid transformation configuration provided, validation failed with the " +
+                    "following error messages:\n" + validationOutput);
+        } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Executing the pipeline with the following transformation configuration:\n" + transformationConfig.toString());
+        }
+        process(transformationConfig, spark);
+    }
 
     /**
      * Executing a set of transformations (${transform.steps}) specified by root configuration

@@ -5,6 +5,7 @@ import com.cv.sparkathon.config.validator.Validator;
 import com.cv.sparkathon.config.validator.ValidatorRegistry;
 import com.google.common.base.Preconditions;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,5 +63,12 @@ public class TransformationConfig {
                 });
 
         return validationOutput;
+    }
+
+    @Override
+    public String toString() {
+        return "TransformationConfig{" +
+                "transformationSteps=" + StringUtils.join(transformationSteps) +
+                '}';
     }
 }

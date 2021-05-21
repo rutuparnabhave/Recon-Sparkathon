@@ -70,4 +70,14 @@ public class StepInfo {
     public int hashCode() {
         return Objects.hash(stepName, stepNumber, source, targets);
     }
+
+    @Override
+    public String toString() {
+        return "StepInfo{" +
+                "stepName='" + stepName + '\'' +
+                ", stepNumber=" + stepNumber +
+                ", source=" + source +
+                ", targets=" + targets +
+                '}';
+    }
 }

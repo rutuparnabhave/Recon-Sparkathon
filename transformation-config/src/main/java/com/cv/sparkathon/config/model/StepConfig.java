@@ -1,14 +1,18 @@
 package com.cv.sparkathon.config.model;
 
+import com.cv.sparkathon.config.util.ConfigUtil;
+import com.google.common.base.Joiner;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Set;
+import java.util.StringJoiner;
 
 public class StepConfig {
 
-    private SourceConfig sourceConfig;
-    private Configuration stepTransformationConfig;
-    private Set<TargetConfig> targetConfigs;
+    private final SourceConfig sourceConfig;
+    private final Configuration stepTransformationConfig;
+    private final Set<TargetConfig> targetConfigs;
 
     public StepConfig(SourceConfig sourceConfig, Configuration stepTransformationConfig, Set<TargetConfig> targetConfigs) {
         this.sourceConfig = sourceConfig;
@@ -35,5 +39,14 @@ public class StepConfig {
                 && !stepTransformationConfig.isEmpty()
                 && targetConfigs != null
                 && !targetConfigs.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return "StepConfig{" +
+                "sourceConfig=" + sourceConfig +
+                ", stepTransformationConfig=" + ConfigUtil.dumpConfig(stepTransformationConfig) +
+                ", targetConfigs=" + Joiner.on(",").join(targetConfigs) +
+                '}';
     }
 }

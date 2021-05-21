@@ -22,4 +22,16 @@ public class ValidationOutput {
     public void addError(String error) {
         errors.add(error);
     }
+
+    public List<String> getInfos() {
+        return infos;
+    }
+
+    public List<String> getWarns() {
+        return warns;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
 }
