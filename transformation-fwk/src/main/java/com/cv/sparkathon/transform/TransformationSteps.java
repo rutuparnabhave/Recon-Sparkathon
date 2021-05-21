@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+import static java.lang.String.format;
+
 public class TransformationSteps {
     private static final Logger LOG = LoggerFactory.getLogger(TransformationSteps.class);
 
@@ -41,11 +43,12 @@ public class TransformationSteps {
             SparkSession spark) {
         TransformationConfig transformationConfig = new TransformationConfigParser().parse(transformationConfigFile);
         ValidationOutput validationOutput = transformationConfig.validate();
-        if (validationOutput.getErrors().size() > 0) {
+        if (!validationOutput.getErrors().isEmpty()) {
             throw new RuntimeException("Invalid transformation configuration provided, validation failed with the " +
                     "following error messages:\n" + validationOutput);
         } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Executing the pipeline with the following transformation configuration:\n" + transformationConfig.toString());
+            LOG.debug(format("Executing the pipeline with the following transformation configuration:%n {}",
+                    transformationConfig.toString()));
         }
         process(transformationConfig, spark);
     }

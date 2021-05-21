@@ -1,13 +1,22 @@
 package com.cv.sparkathon.transform;
 
+import com.cv.sparkathon.utils.SparkTestUtil;
+import org.apache.spark.sql.SparkSession;
+import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class TransformationStepsTest {
 
+    private static SparkSession sparkSession;
+
+    @BeforeClass
+    public static void setup() {
+        sparkSession = SparkTestUtil.getSparkSession();
+
+    }
+
     @Test
     public void process() {
-        TransformationSteps.process("transformation-config-test.properties", null);
+        TransformationSteps.process("transformation-config-test.properties", sparkSession);
     }
 }
