@@ -3,6 +3,7 @@ package com.cv.sparkathon.transform;
 import com.cv.sparkathon.config.model.*;
 import com.cv.sparkathon.config.parser.TransformationConfigParser;
 import com.cv.sparkathon.reader.SQLHiveReader;
+import com.cv.sparkathon.writer.HiveWriter;
 import com.cv.sparkathon.writer.SparkMemWriter;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.configuration.Configuration;
@@ -24,6 +25,7 @@ public class TransformationSteps {
     public static final ImmutableMap<String, BiConsumer<Dataset<Row>, Configuration>> DEFAULT_WRITERS =
             ImmutableMap.<String, BiConsumer<Dataset<Row>, Configuration>>builder()
                     .put("mem", SparkMemWriter::toMem)
+                    .put("hive", HiveWriter::write)
                     .build();
 
     public static final ImmutableMap<String, BiFunction<SparkSession, Configuration, Dataset<Row>>> DEFAULT_READERS =
@@ -64,30 +66,27 @@ public class TransformationSteps {
             SparkSession spark) {
 
         Map<StepInfo, StepConfig> transformationSteps = transformationConfig.getTransformationSteps();
-        transformationSteps.entrySet().forEach(
-                stepInfoStepConfigEntry -> {
-                    StepInfo stepInfo = stepInfoStepConfigEntry.getKey();
-                    StepConfig stepConfig = stepInfoStepConfigEntry.getValue();
-                    SourceConfig sourceConfig = stepConfig.getSourceConfig();
-                    BiFunction<SparkSession, Configuration, Dataset<Row>> reader = DEFAULT_READERS.get(sourceConfig.getSource().getName());
-                    if (reader != null) {
-                        Dataset<Row> readerOutput = reader.apply(spark, sourceConfig.getSourceConfiguration());
-                        stepConfig.getTargetConfigs().forEach(targetConfig -> {
-                            BiConsumer<Dataset<Row>, Configuration> writer = DEFAULT_WRITERS.get(targetConfig.getTarget().getName());
-                            if (writer != null) {
-                                writer.accept(readerOutput, targetConfig.getTargetConfiguration());
-                            } else {
-                                String errorMessage = "Writer unsupported for the target: " + targetConfig.getTarget();
-                                LOG.error(errorMessage);
-                                throw new IllegalStateException(errorMessage);
-                            }
-                        });
+        transformationSteps.forEach((stepInfo, stepConfig) -> {
+            SourceConfig sourceConfig = stepConfig.getSourceConfig();
+            BiFunction<SparkSession, Configuration, Dataset<Row>> reader = DEFAULT_READERS.get(sourceConfig.getSource().getName());
+            if (reader != null) {
+                Dataset<Row> readerOutput = reader.apply(spark, sourceConfig.getSourceConfiguration());
+
+                stepConfig.getTargetConfigs().forEach(targetConfig -> {
+                    BiConsumer<Dataset<Row>, Configuration> writer = DEFAULT_WRITERS.get(targetConfig.getTarget().getName());
+                    if (writer != null) {
+                        writer.accept(readerOutput, targetConfig.getTargetConfiguration());
                     } else {
-                        String errorMessage = "Reader unsupported for the source: " + stepInfo.getSource();
+                        String errorMessage = "Writer unsupported for the target: " + targetConfig.getTarget();
                         LOG.error(errorMessage);
                         throw new IllegalStateException(errorMessage);
                     }
-                }
-        );
+                });
+            } else {
+                String errorMessage = "Reader unsupported for the source: " + stepInfo.getSource();
+                LOG.error(errorMessage);
+                throw new IllegalStateException(errorMessage);
+            }
+        });
     }
 }
